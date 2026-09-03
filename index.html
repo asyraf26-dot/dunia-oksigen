@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dunia Oksigen - Simulator Sains Interaktif</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts - Fredoka & Nunito -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: linear-gradient(135deg, #e0f2fe 0%, #f0fdf4 100%);
+    }
+    h1, h2, h3, .font-fun {
+      font-family: 'Fredoka', cursive;
+    }
+    
+    /* Keyframe Animations */
+    @keyframes float {
+      0% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(2deg); }
+      100% { transform: translateY(0px) rotate(0deg); }
+    }
+    
+    @keyframes breathe {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes gasp {
+      0% { transform: translateY(0px) scale(0.95); }
+      25% { transform: translateY(-4px) scale(0.98); }
+      50% { transform: translateY(2px) scale(0.92); }
+      75% { transform: translateY(-2px) scale(0.96); }
+      100% { transform: translateY(0px) scale(0.95); }
+    }
+
+    @keyframes bubbleUp {
+      0% { opacity: 1; transform: translateY(0) scale(0.5); }
+      100% { opacity: 0; transform: translateY(-80px) scale(1.2); }
+    }
+
+    .animate-float {
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .animate-breathe {
+      animation: breathe 2s ease-in-out infinite;
+    }
+
+    .animate-gasp {
+      animation: gasp 0.8s ease-in-out infinite;
+    }
+
+    .bubble-particle {
+      position: absolute;
+      animation: bubbleUp 1.5s forwards ease-out;
+      pointer-events: none;
+    }
+
+    /* Environment Styling */
+    .bg-darat {
+      background: linear-gradient(to bottom, #7dd3fc 0%, #bae6fd 60%, #86efac 60%, #4ade80 100%);
+    }
+    .bg-air {
+      background: linear-gradient(to bottom, #38bdf8 0%, #0284c7 70%, #0369a1 100%);
+    }
+    .bg-tanah {
+      background: linear-gradient(to bottom, #fdba74 0%, #92400e 30%, #78350f 100%);
+    }
+
+    /* Tank Fluid Transition */
+    .tank-fluid {
+      transition: height 0.5s ease-in-out, background-color 0.5s ease-in-out;
+    }
+
+    /* Respect users who prefer reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      .animate-breathe, .animate-float, .animate-gasp { animation: none !important; }
+      .bubble-particle { animation: none !important; }
+      * { transition: none !important; }
+    }
+
+  </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between p-3 md:p-6 select-none">
+
+  <!-- Header -->
+  <header class="max-w-5xl mx-auto w-full text-center mb-4">
+    <div class="inline-block bg-white/80 backdrop-blur-md px-6 py-3 rounded-full shadow-lg border-4 border-yellow-300">
+      <h1 class="text-3xl md:text-5xl font-bold text-sky-600 tracking-wide flex items-center justify-center gap-3">
+        <span>🌍</span> DUNIA OKSIGEN <span>🍃</span>
+      </h1>
+      <p class="text-sm md:text-base text-slate-600 font-semibold mt-1">
+        Mari belajar bagaimana hidupan bernafas dan hidup dengan Oksigen (O<sub>2</sub>)!
+      </p>
+    </div>
+  </header>
+
+  <!-- Main Grid Container -->
+  <main class="max-w-5xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+    
+    <!-- Left Panel: Controls -->
+    <section class="lg:col-span-4 bg-white/90 backdrop-blur-md rounded-3xl p-5 shadow-xl border-4 border-sky-200 flex flex-col justify-between gap-5">
+      
+      <!-- 1. Pilih Hidupan -->
+      <div>
+        <h2 class="text-lg font-bold text-sky-700 mb-2 flex items-center gap-2">
+          <span class="bg-sky-100 text-sky-600 w-7 h-7 rounded-full flex items-center justify-center text-sm">1</span>
+          Pilih Hidupan Comel:
+        </h2>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="selectCreature('manusia')" id="btn-manusia" class="creature-btn p-3 rounded-2xl border-2 border-slate-200 bg-amber-50 hover:bg-amber-100 transition-all flex flex-col items-center gap-1 font-bold text-slate-700 shadow-sm">
+            <span class="text-3xl">🧑‍🌾</span>
+            <span>Manusia</span>
+          </button>
+          <button onclick="selectCreature('ikan')" id="btn-ikan" class="creature-btn p-3 rounded-2xl border-2 border-slate-200 bg-sky-50 hover:bg-sky-100 transition-all flex flex-col items-center gap-1 font-bold text-slate-700 shadow-sm">
+            <span class="text-3xl">🐠</span>
+            <span>Ikan</span>
+          </button>
+          <button onclick="selectCreature('pokok')" id="btn-pokok" class="creature-btn p-3 rounded-2xl border-2 border-slate-200 bg-emerald-50 hover:bg-emerald-100 transition-all flex flex-col items-center gap-1 font-bold text-slate-700 shadow-sm">
+            <span class="text-3xl">🌳</span>
+            <span>Pokok</span>
+          </button>
+          <button onclick="selectCreature('katak')" id="btn-katak" class="creature-btn p-3 rounded-2xl border-2 border-slate-200 bg-green-50 hover:bg-green-100 transition-all flex flex-col items-center gap-1 font-bold text-slate-700 shadow-sm">
+            <span class="text-3xl">🐸</span>
+            <span>Katak</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. Pilih Persekitaran -->
+      <div>
+        <h2 class="text-lg font-bold text-sky-700 mb-2 flex items-center gap-2">
+          <span class="bg-sky-100 text-sky-600 w-7 h-7 rounded-full flex items-center justify-center text-sm">2</span>
+          Pilih Tempat / Habitat:
+        </h2>
+        <div class="grid grid-cols-3 gap-2">
+          <button onclick="selectEnv('darat')" id="btn-darat" class="env-btn p-2 rounded-xl border-2 border-slate-200 bg-slate-50 hover:bg-slate-100 font-bold text-xs md:text-sm text-slate-700 transition flex flex-col items-center gap-1">
+            <span class="text-xl">🏞️</span>
+            <span>Darat</span>
+          </button>
+          <button onclick="selectEnv('air')" id="btn-air" class="env-btn p-2 rounded-xl border-2 border-slate-200 bg-slate-50 hover:bg-slate-100 font-bold text-xs md:text-sm text-slate-700 transition flex flex-col items-center gap-1">
+            <span class="text-xl">🌊</span>
+            <span>Dalam Air</span>
+          </button>
+          <button onclick="selectEnv('tanah')" id="btn-tanah" class="env-btn p-2 rounded-xl border-2 border-slate-200 bg-slate-50 hover:bg-slate-100 font-bold text-xs md:text-sm text-slate-700 transition flex flex-col items-center gap-1">
+            <span class="text-xl">🕳️</span>
+            <span>Dalam Tanah</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3. Laraskan Oksigen -->
+      <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200">
+        <h2 class="text-lg font-bold text-sky-700 mb-2 flex items-center gap-2">
+          <span class="bg-sky-100 text-sky-600 w-7 h-7 rounded-full flex items-center justify-center text-sm">3</span>
+          Tahap Oksigen:
+        </h2>
+        
+        <!-- Preset Buttons -->
+        <div class="flex justify-between gap-2 mb-3">
+          <button onclick="setOxygen(20)" class="flex-1 py-1.5 px-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold text-xs shadow transition">
+            🔴 Rendah
+          </button>
+          <button onclick="setOxygen(50)" class="flex-1 py-1.5 px-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-bold text-xs shadow transition">
+            🟡 Sederhana
+          </button>
+          <button onclick="setOxygen(90)" class="flex-1 py-1.5 px-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-bold text-xs shadow transition">
+            🟢 Tinggi
+          </button>
+        </div>
+
+        <!-- Slider -->
+        <div class="flex items-center gap-3">
+          <span class="font-bold text-slate-400 text-xs">0%</span>
+          <input type="range" id="oxygenSlider" min="0" max="100" value="90" oninput="updateOxygen(this.value)" class="w-full h-3 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500">
+          <span class="font-bold text-slate-600 text-xs">100%</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Right Panel: Interactive Canvas -->
+    <section class="lg:col-span-8 flex flex-col gap-4">
+      
+      <!-- Stage Viewport -->
+      <div id="stage" class="relative min-h-[340px] md:min-h-[380px] w-full rounded-3xl overflow-hidden border-4 border-white shadow-2xl flex items-center justify-center transition-all duration-700 bg-darat">
+        
+        <!-- Oxygen Tank Meter -->
+        <div class="absolute right-4 top-4 bg-white/90 backdrop-blur-md p-2 rounded-2xl shadow-lg border-2 border-slate-200 flex flex-col items-center gap-1 z-20">
+          <span class="text-xs font-bold text-slate-600">Tangki O<sub>2</sub></span>
+          <div class="w-8 h-28 bg-slate-200 rounded-full border-2 border-slate-400 relative overflow-hidden flex flex-col justify-end">
+            <div id="tankFluid" class="w-full tank-fluid bg-emerald-500 h-[90%] rounded-b-full"></div>
+          </div>
+          <span id="oxygenPercent" class="text-xs font-black text-slate-800">90%</span>
+        </div>
+
+        <!-- Main Character Display -->
+        <div id="characterBox" class="relative z-10 flex flex-col items-center justify-center transition-all duration-300 animate-breathe">
+          <div id="characterAvatar" class="text-8xl md:text-9xl filter drop-shadow-xl cursor-pointer hover:scale-105 transition" onclick="triggerAction()">
+            🧑‍🌾
+          </div>
+          <div id="statusTag" class="mt-2 bg-white/90 backdrop-blur-sm px-4 py-1.5 rounded-full shadow-md font-bold text-sm text-slate-700 border border-slate-200 flex items-center gap-2">
+            <span>😊 Gembira & Segar!</span>
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <button id="actionBtn" onclick="triggerAction()" class="absolute bottom-4 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-slate-900 font-extrabold text-base md:text-lg px-6 py-2.5 rounded-full shadow-lg border-2 border-white transform hover:scale-105 active:scale-95 transition flex items-center gap-2 z-20">
+          <span>🫁</span> <span id="actionBtnText">Tarik Nafas!</span>
+        </button>
+
+      </div>
+
+      <!-- Info Box -->
+      <div class="bg-white/90 backdrop-blur-md rounded-3xl p-5 shadow-xl border-4 border-amber-200 flex flex-col md:flex-row gap-4 items-center">
+        <div class="text-4xl bg-amber-100 p-3 rounded-2xl text-amber-600 shrink-0">
+          💡
+        </div>
+        <div class="flex-1">
+          <h3 id="infoTitle" class="text-lg font-bold text-amber-800 mb-1">
+            Apa yang berlaku?
+          </h3>
+          <p id="infoDescription" class="text-sm md:text-base text-slate-700 leading-relaxed font-semibold" aria-live="polite">
+            Manusia perlukan oksigen yang cukup untuk kekal cergas dan sihat!
+          </p>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="max-w-5xl mx-auto w-full text-center mt-4 text-xs font-bold text-slate-500">
+    <p>Simulator Sains Interaktif • Sesuai untuk Pelajar Sekolah Rendah</p>
+  </footer>
+
+  <!-- Audio & Application Logic -->
+  <script>
+    // Audio Context Setup
+    let audioCtx = null;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioCtx = new AudioContextClass();
+        }
+      }
+      return audioCtx;
+    }
+
+    function playSound(type) {
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        if (ctx.state === 'suspended') {
+          ctx.resume().catch(() => {});
+        }
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (type === 'happy') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(400, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.2);
+          gain.gain.setValueAtTime(0.2, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.2);
+        } else if (type === 'sad') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(300, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.4);
+          gain.gain.setValueAtTime(0.2, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.4);
+        } else if (type === 'action') {
+          osc.type = 'sine';
+          // smoother ramp for action sound
+          osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(659.25, ctx.currentTime + 0.12);
+          gain.gain.setValueAtTime(0.15, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.25);
+        }
+      } catch (e) {
+        // Handle audio errors gracefully
+        console.warn('Audio error:', e);
+      }
+    }
+
+    // State Variables
+    let currentCreature = 'manusia';
+    let currentEnv = 'darat';
+    let oxygenLevel = 90;
+
+    // Persistence key for simulator state
+    const STATE_KEY = 'dunia-oksigen-state';
+
+    // Database
+    const creatureData = {
+      manusia: {
+        name: 'Manusia',
+        buttonId: 'btn-manusia',
+        actionName: 'Tarik Nafas!',
+        actionIcon: '🫁',
+        breathOrgan: 'paru-paru',
+        states: {
+          high: { avatar: '🧑‍🌾', emoji: '😊', label: 'Gembira & Cergas!', style: 'animate-breathe' },
+          medium: { avatar: '😐', emoji: '😐', label: 'Biasa & Penat...', style: 'animate-float' },
+          low: { avatar: '😵', emoji: '😷', label: 'Sangat Lemah / Sesak Nafas!', style: 'animate-gasp' }
+        }
+      },
+      ikan: {
+        name: 'Ikan',
+        buttonId: 'btn-ikan',
+        actionName: 'Berenang & Bernafas!',
+        actionIcon: '🫧',
+        breathOrgan: 'insang',
+        states: {
+          high: { avatar: '🐠', emoji: '😃', label: 'Berenang Laju & Sihat!', style: 'animate-breathe' },
+          medium: { avatar: '🐟', emoji: '😐', label: 'Berenang Perlahan...', style: 'animate-float' },
+          low: { avatar: '💀', emoji: '😵', label: 'Lemas! Kurang Oksigen!', style: 'animate-gasp' }
+        }
+      },
+      pokok: {
+        name: 'Pokok',
+        buttonId: 'btn-pokok',
+        actionName: 'Fotosintesis!',
+        actionIcon: '☀️',
+        breathOrgan: 'stoma daun',
+        states: {
+          high: { avatar: '🌳', emoji: '✨', label: 'Subur & Merekah Hijau!', style: 'animate-breathe' },
+          medium: { avatar: '🪴', emoji: '🍃', label: 'Tumbuh Biasa...', style: 'animate-float' },
+          low: { avatar: '🥀', emoji: '🍂', label: 'Layu & Daun Gugur!', style: 'animate-gasp' }
+        }
+      },
+      katak: {
+        name: 'Katak',
+        buttonId: 'btn-katak',
+        actionName: 'Bernafas Melalui Kulit!',
+        actionIcon: '🐸',
+        breathOrgan: 'kulit lembap & paru-paru',
+        states: {
+          high: { avatar: '🐸', emoji: '🐸', label: 'Melompat Gembira!', style: 'animate-breathe' },
+          medium: { avatar: '🐸', emoji: '😐', label: 'Diam & Kurang Aktif...', style: 'animate-float' },
+          low: { avatar: '🐸', emoji: '😵', label: 'Kulit Kering & Lemah!', style: 'animate-gasp' }
+        }
+      }
+    };
+
+    const envData = {
+      darat: { name: 'Darat', bgClass: 'bg-darat' },
+      air: { name: 'Dalam Air', bgClass: 'bg-air' },
+      tanah: { name: 'Dalam Tanah', bgClass: 'bg-tanah' }
+    };
+
+    const BG_CLASSES = Object.values(envData).map(e => e.bgClass);
+
+    // Initialize Simulator
+    function initSimulator() {
+      loadState();
+      // Apply UI state
+      selectCreature(currentCreature, false);
+      selectEnv(currentEnv, false);
+      updateOxygen(oxygenLevel);
+    }
+
+    function saveState() {
+      try {
+        const s = { currentCreature, currentEnv, oxygenLevel };
+        localStorage.setItem(STATE_KEY, JSON.stringify(s));
+      } catch (e) { /* ignore */ }
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STATE_KEY);
+        if (!raw) return;
+        const obj = JSON.parse(raw);
+        if (obj.currentCreature) currentCreature = obj.currentCreature;
+        if (obj.currentEnv) currentEnv = obj.currentEnv;
+        if (typeof obj.oxygenLevel === 'number') oxygenLevel = obj.oxygenLevel;
+      } catch (e) { /* ignore */ }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initSimulator);
+    } else {
+      initSimulator();
+    }
+
+    // Creature Selection
+    function selectCreature(type, triggerSound = true) {
+      currentCreature = type;
+      document.querySelectorAll('.creature-btn').forEach(btn => {
+        btn.classList.remove('ring-4', 'ring-sky-400', 'bg-white');
+        btn.setAttribute('aria-pressed', 'false');
+      });
+      const activeBtn = document.getElementById(creatureData[type].buttonId);
+      if (activeBtn) {
+        activeBtn.classList.add('ring-4', 'ring-sky-400', 'bg-white');
+        activeBtn.setAttribute('aria-pressed', 'true');
+      }
+
+      const actionBtnText = document.getElementById('actionBtnText');
+      if (actionBtnText) actionBtnText.innerText = creatureData[type].actionName;
+
+      const actionBtn = document.getElementById('actionBtn');
+      if (actionBtn && actionBtn.querySelector('span:first-child')) {
+        actionBtn.querySelector('span:first-child').innerText = creatureData[type].actionIcon;
+      }
+
+      if (triggerSound) playSound('happy');
+      render();
+      saveState();
+    }
+
+    // Environment Selection
+    function selectEnv(env, triggerSound = true) {
+      currentEnv = env;
+
+      document.querySelectorAll('.env-btn').forEach(btn => {
+        btn.classList.remove('ring-4', 'ring-amber-400', 'bg-white');
+        btn.setAttribute('aria-pressed', 'false');
+      });
+      const activeBtn = document.getElementById(`btn-${env}`);
+      if (activeBtn) {
+        activeBtn.classList.add('ring-4', 'ring-amber-400', 'bg-white');
+        activeBtn.setAttribute('aria-pressed', 'true');
+      }
+
+      const stage = document.getElementById('stage');
+      if (stage) {
+        // remove background classes safely and add the target one
+        stage.classList.remove(...BG_CLASSES);
+        stage.classList.add(envData[env].bgClass);
+      }
+
+      if (triggerSound) playSound('happy');
+      render();
+      saveState();
+    }
+
+    // Oxygen Adjustments
+    function setOxygen(val) {
+      const slider = document.getElementById('oxygenSlider');
+      if (slider) slider.value = val;
+      updateOxygen(val);
+    }
+
+    function updateOxygen(val) {
+      oxygenLevel = parseInt(val);
+      const oxygenPercent = document.getElementById('oxygenPercent');
+      if (oxygenPercent) oxygenPercent.innerText = `${oxygenLevel}%`;
+
+      const tankFluid = document.getElementById('tankFluid');
+      if (tankFluid) {
+        tankFluid.style.height = `${oxygenLevel}%`;
+
+        if (oxygenLevel > 65) {
+          tankFluid.className = "w-full tank-fluid bg-emerald-500 rounded-b-full";
+        } else if (oxygenLevel > 35) {
+          tankFluid.className = "w-full tank-fluid bg-amber-500 rounded-b-full";
+        } else {
+          tankFluid.className = "w-full tank-fluid bg-red-500 rounded-b-full";
+        }
+      }
+
+      render();
+      saveState();
+    }
+
+    // Main Render Function
+    function render() {
+      const creature = creatureData[currentCreature];
+      const characterAvatar = document.getElementById('characterAvatar');
+      const characterBox = document.getElementById('characterBox');
+      const statusTag = document.getElementById('statusTag');
+      const infoTitle = document.getElementById('infoTitle');
+      const infoDescription = document.getElementById('infoDescription');
+
+      if (!characterAvatar || !characterBox || !statusTag) return;
+
+      // Habitat Validation
+      let isWrongEnv = false;
+      let wrongEnvReason = '';
+
+      if (currentCreature === 'manusia' && currentEnv !== 'darat') {
+        isWrongEnv = true;
+        if (currentEnv === 'air') wrongEnvReason = 'Manusia tidak boleh bernafas di dalam air! Paru-paru manusia tidak dapat menyerap oksigen yang terlarut di dalam air.';
+        if (currentEnv === 'tanah') wrongEnvReason = 'Manusia terperangkap di dalam tanah! Tiada ruang udara untuk paru-paru bernafas.';
+      } else if (currentCreature === 'ikan' && currentEnv !== 'air') {
+        isWrongEnv = true;
+        if (currentEnv === 'darat') wrongEnvReason = 'Ikan tidak boleh bernafas di darat! Insang ikan memerlukan aliran air untuk menyerap oksigen.';
+        if (currentEnv === 'tanah') wrongEnvReason = 'Ikan terperangkap di dalam tanah kering dan akan lemas serta-merta!';
+      } else if (currentCreature === 'pokok' && currentEnv !== 'darat') {
+        isWrongEnv = true;
+        if (currentEnv === 'air') wrongEnvReason = 'Pokok darat akan lemas dan akarnya reput jika tenggelam sepenuhnya di dalam air!';
+        if (currentEnv === 'tanah') wrongEnvReason = 'Pokok tertimbus di dalam tanah! Tanpa cahaya matahari dan udara, pokok tidak boleh menjalankan fotosintesis.';
+      } else if (currentCreature === 'katak' && currentEnv === 'tanah') {
+        isWrongEnv = true;
+        wrongEnvReason = 'Katak tertimbus di dalam tanah dalam! Kulit dan paru-paru katak memerlukan udara atau air terbuka untuk bernafas.';
+      }
+
+      // Oxygen State
+      let stateKey = 'high';
+      if (oxygenLevel <= 35) {
+        stateKey = 'low';
+      } else if (oxygenLevel <= 65) {
+        stateKey = 'medium';
+      }
+
+      const state = creature.states[stateKey];
+
+      // Render Wrong Environment vs Correct Environment
+      // Clear infoDescription safely and build nodes
+      function setInfo(titleText, paragraphs) {
+        infoTitle.textContent = titleText;
+        infoDescription.innerHTML = '';
+        paragraphs.forEach(p => {
+          const el = document.createElement('p');
+          if (p.small) {
+            el.className = 'text-xs md:text-sm mt-1 leading-relaxed';
+          } else {
+            el.className = 'text-sm md:text-base leading-relaxed';
+          }
+          el.textContent = p.text;
+          infoDescription.appendChild(el);
+        });
+      }
+
+      if (isWrongEnv) {
+        let wrongAvatar = '😵';
+        if (currentCreature === 'ikan') wrongAvatar = '💀';
+        if (currentCreature === 'pokok') wrongAvatar = '🥀';
+
+        characterAvatar.innerText = wrongAvatar;
+        characterBox.className = 'relative z-10 flex flex-col items-center justify-center transition-all duration-300 animate-gasp';
+        statusTag.textContent = '🚨 BAHAYA! Salah Habitat!';
+        statusTag.classList.add('text-red-600','font-extrabold');
+
+        setInfo(`⚠️ ${creature.name} Tidak Boleh Hidup di ${envData[currentEnv].name}!`, [
+          { text: '❌ TIDAK BOLEH BERTAHAN HIDUP:' },
+          { text: wrongEnvReason, small: true },
+          { text: '💡 Walaupun tahap oksigen disetkan tinggi, organ pernafasan hidupan ini tidak sesuai untuk persekitaran ini.', small: true }
+        ]);
+      } else {
+        characterAvatar.innerText = state.avatar;
+        characterBox.className = `relative z-10 flex flex-col items-center justify-center transition-all duration-300 ${state.style}`;
+        statusTag.textContent = `${state.emoji} ${state.label}`;
+        statusTag.classList.remove('text-red-600','font-extrabold');
+
+        let statusExplanation = '';
+        if (stateKey === 'high') {
+          statusExplanation = `✨ Paras Oksigen Tinggi (${oxygenLevel}%): ${creature.name} mendapat oksigen yang sangat cukup melalui ${creature.breathOrgan}. Badan menjadi segar, sihat dan bertenaga!`;
+        } else if (stateKey === 'medium') {
+          statusExplanation = `🌤️ Paras Oksigen Sederhana (${oxygenLevel}%): ${creature.name} masih boleh hidup tetapi mula berasa penat dan kurang aktif.`;
+        } else {
+          statusExplanation = `🚨 Paras Oksigen Rendah (${oxygenLevel}%): Bahaya! ${creature.name} kekurangan oksigen! Tanpa oksigen yang cukup, hidupan boleh lemas dan lemah!`;
+        }
+
+        const paragraphs = [{ text: statusExplanation }];
+
+        if (currentCreature === 'pokok') {
+          paragraphs.push({ text: '🍃 Fakta Sains: Pokok membebaskan Oksigen semasa Fotosintesis di waktu siang dan menyerap oksigen untuk bernafas!', small: true });
+        }
+
+        setInfo(`${creature.name} di ${envData[currentEnv].name}`, paragraphs);
+      }
+    }
+
+    // Trigger Action
+    function triggerAction() {
+      const isWrongEnv = (
+        (currentCreature === 'manusia' && currentEnv !== 'darat') ||
+        (currentCreature === 'ikan' && currentEnv !== 'air') ||
+        (currentCreature === 'pokok' && currentEnv !== 'darat') ||
+        (currentCreature === 'katak' && currentEnv === 'tanah')
+      );
+
+      if (isWrongEnv) {
+        playSound('sad');
+      } else {
+        playSound('action');
+      }
+
+      const stage = document.getElementById('stage');
+      const characterAvatar = document.getElementById('characterAvatar');
+
+      if (characterAvatar) {
+        characterAvatar.classList.add('scale-125');
+        setTimeout(() => characterAvatar.classList.remove('scale-125'), 300);
+      }
+
+      if (stage) {
+        for (let i = 0; i < 6; i++) {
+          createParticle(stage, isWrongEnv);
+        }
+      }
+    }
+
+    function createParticle(parent, isWrongEnv = false) {
+      // limit particle count to avoid DOM buildup
+      try {
+        const existing = parent.querySelectorAll('.bubble-particle').length;
+        if (existing >= 20) return;
+      } catch (e) {}
+
+      const particle = document.createElement('div');
+      
+      if (isWrongEnv) {
+        particle.className = 'bubble-particle font-black text-red-600 bg-red-100 px-2 py-0.5 rounded-full shadow border border-red-300 text-xs z-30';
+        particle.innerText = '⚠️ Tiada Udara!';
+      } else {
+        particle.className = 'bubble-particle font-black text-sky-500 bg-white/80 px-2 py-0.5 rounded-full shadow border border-sky-300 text-xs z-30';
+        particle.innerText = currentCreature === 'pokok' ? '🍃 O₂' : '🫧 O₂';
+      }
+
+      const randomX = (Math.random() - 0.5) * 120;
+      const randomY = (Math.random() - 0.5) * 40;
+
+      particle.style.left = `calc(50% + ${randomX}px)`;
+      particle.style.top = `calc(50% + ${randomY}px)`;
+
+      parent.appendChild(particle);
+
+      setTimeout(() => {
+        particle.remove();
+      }, 1500);
+    }
+  </script>
+</body>
+</html>
